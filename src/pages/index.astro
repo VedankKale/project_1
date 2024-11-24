@@ -1,0 +1,64 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BlogCard from '../components/BlogCard.astro';
+import { getAllPosts } from '../lib/db';
+
+const posts = getAllPosts(true);
+const featuredPosts = posts.slice(0, 3);
+const categories = [...new Set(posts.map(post => post.category))].map(category => ({
+  name: category,
+  count: posts.filter(p => p.category === category).length
+}));
+---
+
+<Layout title="Welcome to Chronosphere">
+  <section class="bg-primary-900 text-white py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="text-5xl font-serif font-bold mb-6">Discover History's Greatest Stories</h1>
+      <p class="text-xl text-primary-100 max-w-2xl">Journey through time with expertly crafted articles that bring the past to life. From ancient civilizations to modern events, explore history like never before.</p>
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <h2 class="text-3xl font-serif font-bold mb-8">Latest Articles</h2>
+    {featuredPosts.length === 0 ? (
+      <div class="text-center py-12">
+        <p class="text-lg text-primary-600">No posts available yet. Check back soon!</p>
+      </div>
+    ) : (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {featuredPosts.map(post => (
+          <BlogCard
+            title={post.title}
+            excerpt={post.description}
+            date={new Date(post.created_at)}
+            category={post.category}
+            image={post.image}
+            slug={post.slug}
+          />
+        ))}
+      </div>
+    )}
+  </section>
+
+  <section class="bg-primary-100 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl font-serif font-bold mb-8 text-center">Explore by Era</h2>
+      {categories.length === 0 ? (
+        <div class="text-center">
+          <p class="text-lg text-primary-600">Categories will appear as posts are added.</p>
+        </div>
+      ) : (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {categories.map(category => (
+            <a href={`/categories/${category.name.toLowerCase().replace(/\s+/g, '-')}`} 
+               class="bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow">
+              <h3 class="text-xl font-bold mb-2">{category.name}</h3>
+              <p class="text-primary-700">{category.count} articles</p>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+</Layout>

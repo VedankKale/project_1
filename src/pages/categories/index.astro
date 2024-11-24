@@ -1,0 +1,30 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+const posts = await getCollection('blog');
+const categories = [...new Set(posts.map(post => post.data.category))];
+
+const categoryPosts = categories.map(category => ({
+  name: category,
+  count: posts.filter(post => post.data.category === category).length,
+}));
+---
+
+<Layout title="Categories">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <h1 class="text-4xl font-serif font-bold mb-12">Browse by Category</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {categoryPosts.map(category => (
+        <a 
+          href={`/categories/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+          class="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+        >
+          <h2 class="text-2xl font-bold mb-2">{category.name}</h2>
+          <p class="text-primary-700">{category.count} articles</p>
+        </a>
+      ))}
+    </div>
+  </div>
+</Layout>

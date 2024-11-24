@@ -1,0 +1,127 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getPost, createComment, getComments } from '../../lib/db';
+import { format } from 'date-fns';
+
+const { slug } = Astro.params;
+const post = getPost(slug || '');
+
+if (!post) {
+  return Astro.redirect('/404');
+}
+
+const comments = getComments(slug || '', true);
+
+let commentError = '';
+let commentSuccess = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const data = await Astro.request.formData();
+    const author = data.get('author')?.toString() || '';
+    const content = data.get('content')?.toString() || '';
+    
+    if (author && content) {
+      createComment({
+        post_slug: slug || '',
+        author,
+        content,
+        approved: false
+      });
+      commentSuccess = 'Your comment has been submitted and is awaiting approval.';
+    } else {
+      commentError = 'Please fill in all fields.';
+    }
+  } catch (e) {
+    commentError = 'Failed to submit comment. Please try again.';
+  }
+}
+
+const formattedDate = format(new Date(post.created_at), 'MMMM dd, yyyy');
+---
+
+<Layout title={post.title} description={post.description}>
+  <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-8">
+      <img 
+        src={post.image} 
+        alt={post.title}
+        class="w-full h-[400px] object-cover rounded-lg shadow-lg mb-8"
+      />
+      <div class="text-sm text-primary-600 mb-4">
+        {post.category} • {formattedDate}
+      </div>
+      <h1 class="text-4xl font-serif font-bold mb-4">{post.title}</h1>
+      <p class="text-xl text-primary-700">{post.description}</p>
+    </div>
+
+    <div class="prose prose-lg max-w-none mb-12" set:html={post.content} />
+
+    <div class="border-t pt-8">
+      <h2 class="text-2xl font-bold mb-6">Comments</h2>
+      
+      {commentSuccess && (
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+          {commentSuccess}
+        </div>
+      )}
+      
+      {commentError && (
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+          {commentError}
+        </div>
+      )}
+
+      <form method="POST" class="mb-8 space-y-4">
+        <div>
+          <label for="author" class="block text-sm font-medium text-primary-700">
+            Name
+          </label>
+          <input
+            type="text"
+            name="author"
+            id="author"
+            required
+            class="mt-1 block w-full rounded-md border-primary-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+          />
+        </div>
+
+        <div>
+          <label for="content" class="block text-sm font-medium text-primary-700">
+            Comment
+          </label>
+          <textarea
+            name="content"
+            id="content"
+            rows="4"
+            required
+            class="mt-1 block w-full rounded-md border-primary-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+          ></textarea>
+        </div>
+
+        <button
+          type="submit"
+          class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+        >
+          Submit Comment
+        </button>
+      </form>
+
+      {comments.length === 0 ? (
+        <p class="text-primary-600">No comments yet. Be the first to comment!</p>
+      ) : (
+        <div class="space-y-6">
+          {comments.map(comment => (
+            <div class="bg-white p-4 rounded-lg shadow">
+              <div class="font-medium mb-2">{comment.author}</div>
+              <p class="text-primary-700">{comment.content}</p>
+              <div class="text-sm text-primary-500 mt-2">
+                {format(new Date(comment.created_at), 'MMMM dd, yyyy')}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </article>
+</Layout>

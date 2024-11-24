@@ -1,0 +1,125 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { isAuthenticated } from '../../middleware/auth';
+import { getAllPosts } from '../../lib/db';
+
+// Protect this route
+const auth = await isAuthenticated(Astro);
+if (!auth) {
+  return Astro.redirect('/admin/login');
+}
+
+const posts = getAllPosts(false);
+---
+
+<Layout title="Admin Dashboard">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+      <div class="flex gap-4">
+        <a
+          href="/admin/posts/new"
+          class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700"
+        >
+          Create New Post
+        </a>
+        <form method="POST" action="/api/logout">
+          <button
+            type="submit"
+            class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+          >
+            Logout
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-2">Quick Stats</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm text-primary-600">Total Posts</p>
+            <p class="text-2xl font-bold">{posts.length}</p>
+          </div>
+          <div>
+            <p class="text-sm text-primary-600">Published Posts</p>
+            <p class="text-2xl font-bold">{posts.filter(p => p.published).length}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-2">Quick Actions</h2>
+        <div class="flex gap-4">
+          <a href="/admin/categories" class="text-primary-600 hover:text-primary-900">
+            Manage Categories
+          </a>
+          <a href="/admin/posts" class="text-primary-600 hover:text-primary-900">
+            All Posts
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6">
+        <h2 class="text-lg font-medium">Recent Posts</h2>
+      </div>
+      <div class="border-t border-gray-200">
+        <ul role="list" class="divide-y divide-gray-200">
+          {posts.map((post) => (
+            <li class="px-4 py-4 sm:px-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-lg font-medium text-primary-900">{post.title}</h3>
+                  <p class="mt-1 text-sm text-primary-500">
+                    {post.category} • {new Date(post.created_at).toLocaleDateString()}
+                  </p>
+                  <p class="text-sm text-primary-600">
+                    Status: {post.published ? 
+                      <span class="text-green-600">Published</span> : 
+                      <span class="text-yellow-600">Draft</span>
+                    }
+                  </p>
+                </div>
+                <div class="flex gap-4">
+                  <a
+                    href={`/admin/posts/${post.slug}/edit`}
+                    class="text-primary-600 hover:text-primary-900"
+                  >
+                    Edit
+                  </a>
+                  <button
+                    class="text-red-600 hover:text-red-900"
+                    data-post-slug={post.slug}
+                    onclick="deletePost(this.dataset.postSlug)"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+async function deletePost(slug) {
+  if (confirm('Are you sure you want to delete this post?')) {
+    try {
+      const response = await fetch(`/api/posts/${slug}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    }
+  }
+}
+</script>

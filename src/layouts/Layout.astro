@@ -1,0 +1,49 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Explore history through engaging stories and detailed analysis" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="generator" content={Astro.generator} />
+    <title>{title} | Chronosphere</title>
+  </head>
+  <body class="min-h-screen bg-primary-50 text-primary-900">
+    <Header />
+    <main class="min-h-[calc(100vh-64px-300px)]">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style is:global>
+  .prose {
+    @apply text-primary-900;
+  }
+  .prose h1, .prose h2, .prose h3, .prose h4 {
+    @apply font-serif;
+  }
+  .prose a {
+    @apply text-primary-700 hover:text-primary-900;
+  }
+  .prose ul {
+    @apply list-disc pl-6;
+  }
+  .prose p {
+    @apply mb-4;
+  }
+</style>

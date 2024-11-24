@@ -1,0 +1,39 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import BlogCard from '../../components/BlogCard.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  const categories = [...new Set(posts.map(post => post.data.category))];
+  
+  return categories.map(category => ({
+    params: { category: category.toLowerCase().replace(/\s+/g, '-') },
+    props: { 
+      category,
+      posts: posts.filter(post => post.data.category === category)
+    },
+  }));
+}
+
+const { category, posts } = Astro.props;
+---
+
+<Layout title={category}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <h1 class="text-4xl font-serif font-bold mb-8">{category}</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {posts.map(post => (
+        <BlogCard
+          title={post.data.title}
+          excerpt={post.data.description}
+          date={post.data.pubDate}
+          category={post.data.category}
+          image={post.data.image}
+          slug={post.slug}
+        />
+      ))}
+    </div>
+  </div>
+</Layout>

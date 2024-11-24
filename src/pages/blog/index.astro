@@ -1,0 +1,35 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { getAllPosts } from '../../lib/db';
+
+const posts = getAllPosts(true); // Get only published posts
+const sortedPosts = posts.sort((a, b) => 
+  new Date(b.created_at).valueOf() - new Date(a.created_at).valueOf()
+);
+---
+
+<Layout title="Blog">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <h1 class="text-4xl font-serif font-bold mb-8">Latest Articles</h1>
+    
+    {sortedPosts.length === 0 ? (
+      <div class="text-center py-12">
+        <p class="text-lg text-primary-600">No posts available yet. Check back soon!</p>
+      </div>
+    ) : (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {sortedPosts.map(post => (
+          <BlogCard
+            title={post.title}
+            excerpt={post.description}
+            date={new Date(post.created_at)}
+            category={post.category}
+            image={post.image}
+            slug={post.slug}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+</Layout>

@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1,
+    "email": "admin@chronosphere.com",
+    "password": "$2a$10$Jc./pEf4CzS4x8e.lEJ/yOjb9RUisIiGye4/oMY479Qy3HY2HqNBW",
+    "name": "Admin User",
+    "created_at": "2024-11-23T15:23:00.877Z",
+    "updated_at": "2024-11-24T07:39:06.077Z"
+  }
+]
